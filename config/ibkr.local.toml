@@ -1,0 +1,8 @@
+[ibkr]
+host = "127.0.0.1"
+port = 4001
+client_id = 78
+account = ""
+mode = "live"
+readonly = true
+timeout_sec = 10

@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #1e1e2e;
+  --bg-secondary: #181825;
+  --bg-tertiary: #11111b;
+  --border: #313244;
+  --text-primary: #cdd6f4;
+  --text-secondary: #bac2de;
+  --text-muted: #7f849c;
+  --text-dimmed: #585b70;
+  --accent: #f59e0b;
+  --green: #a6e3a1;
+  --red: #f38ba8;
+  --yellow: #f9e2af;
+  --blue: #89b4fa;
+  --mauve: #cba6f7;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-mono);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dimmed);
+}
+
+/* Terminal table styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.data-table th {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.65rem;
+  text-align: right;
+}
+
+.data-table th:first-child {
+  text-align: left;
+}
+
+.data-table td {
+  padding: 4px 8px;
+  text-align: right;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table td:first-child {
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.data-table tr:hover td {
+  background: var(--bg-secondary);
+}
+
+/* Regime colors */
+.regime-goldilocks { color: #a6e3a1; }
+.regime-reflation { color: #f9e2af; }
+.regime-deflation { color: #89b4fa; }
+.regime-stagflation { color: #f38ba8; }
+
+.regime-bg-goldilocks { background: rgba(166, 227, 161, 0.1); border-color: rgba(166, 227, 161, 0.3); }
+.regime-bg-reflation { background: rgba(249, 226, 175, 0.1); border-color: rgba(249, 226, 175, 0.3); }
+.regime-bg-deflation { background: rgba(137, 180, 250, 0.1); border-color: rgba(137, 180, 250, 0.3); }
+.regime-bg-stagflation { background: rgba(243, 139, 168, 0.1); border-color: rgba(243, 139, 168, 0.3); }
