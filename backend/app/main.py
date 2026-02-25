@@ -20,9 +20,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Macrosentiment", version="1.0.0", lifespan=lifespan)
 
+from app.config import settings
+
+_cors_origins = ["http://localhost:3002", "http://localhost:5173"]
+if settings.cors_origins:
+    _cors_origins.extend(o.strip() for o in settings.cors_origins.split(",") if o.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3002", "http://localhost:5173"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

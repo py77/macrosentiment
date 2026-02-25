@@ -18,6 +18,16 @@ docker compose up -d
 # Open http://localhost:3002 — dashboard
 ```
 
+## Environment Variables (.env)
+
+```
+FRED_API_KEY=<your key from fred.stlouisfed.org>
+IBKR_HOST=host.docker.internal    # Docker->host for IBKR Gateway
+IBKR_PORT=4001
+IBKR_CLIENT_ID=78
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/macrosentiment  # set by docker-compose
+```
+
 ## Data Sources
 
 - **FRED API** — interest rates, inflation, GDP, labor, credit spreads, liquidity (requires `FRED_API_KEY` in .env)
@@ -35,6 +45,18 @@ docker compose exec backend python -m app.services.seed
 
 # Manual data fetch
 curl -X POST http://localhost:8002/api/fetch/trigger
+
+# View backend logs
+docker compose logs -f backend
+
+# Rebuild after dependency changes
+docker compose up -d --build
+
+# Database shell
+docker compose exec db psql -U postgres macrosentiment
+
+# Health check
+curl http://localhost:8002/health
 ```
 
 ## Project Structure
@@ -58,6 +80,19 @@ frontend/src/
   pages/           — DashboardPage (single-page layout)
 ```
 
+## API Endpoints
+
+```
+GET  /health                         — Health check
+GET  /api/dashboard                  — Full dashboard payload
+GET  /api/indicators                 — All indicators with latest values
+GET  /api/indicators/{id}/history    — Time-series for one indicator
+GET  /api/regime/current             — Current regime + scores
+GET  /api/regime/history             — Regime timeline
+POST /api/fetch/trigger              — Manual data refresh
+GET  /api/fetch/status               — Last fetch times per source
+```
+
 ## Regime Classification
 
 Growth/inflation momentum scores (-1 to +1) → 4 quadrants:
@@ -73,3 +108,11 @@ Growth/inflation momentum scores (-1 to +1) → 4 quadrants:
 - IBKR client_id: 78 (avoids conflict with equityreport's 77)
 - Z-scores computed over 3-year lookback window
 - Composite score scaled -100 to +100 via category-weighted z-scores
+
+## Gotchas
+
+- **IBKR threading:** ib_insync needs nest_asyncio which can't patch uvloop. The IBKR client runs in a ThreadPoolExecutor with an explicit SelectorEventLoop — do not use asyncio.new_event_loop() (creates uvloop under uvicorn).
+- **ContFuture vs Future:** Use ContFuture (not Future) for commodities/DX — auto-rolls to front month, no expiry needed.
+- **SPX snapshot 0.0:** Index snapshots return 0.0 when market is closed. The client filters price != 0.
+- **Docker->IBKR:** Backend connects to IBKR Gateway via host.docker.internal (set in .env as IBKR_HOST).
+- **Computed indicators:** 2S10S (DGS10-DGS2 in bps) and SPX_VS_200D (% from 200d MA) are derived in data_fetcher.py:_compute_derived().

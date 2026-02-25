@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     ibkr_timeout_sec: int = 10
     backend_host: str = "0.0.0.0"
     backend_port: int = 8002
+    cors_origins: str = ""  # comma-separated extra origins (e.g. Vercel URL)
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
