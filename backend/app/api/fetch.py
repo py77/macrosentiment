@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,16 +9,26 @@ from app.services.data_fetcher import fetch_all
 
 router = APIRouter()
 
+_fetch_in_progress = False
+
 
 async def _run_fetch():
     """Background task to run full data pipeline."""
-    async with async_session() as db:
-        await fetch_all(db)
+    global _fetch_in_progress
+    try:
+        async with async_session() as db:
+            await fetch_all(db)
+    finally:
+        _fetch_in_progress = False
 
 
 @router.post("/fetch/trigger", response_model=FetchTriggerOut)
 async def trigger_fetch(background_tasks: BackgroundTasks):
-    """Manually trigger a data refresh."""
+    """Manually trigger a data refresh. Returns 409 if already in progress."""
+    global _fetch_in_progress
+    if _fetch_in_progress:
+        raise HTTPException(status_code=409, detail="Fetch already in progress")
+    _fetch_in_progress = True
     background_tasks.add_task(_run_fetch)
     return FetchTriggerOut(
         status="started",
