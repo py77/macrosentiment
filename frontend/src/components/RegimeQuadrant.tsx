@@ -31,11 +31,14 @@ const DOT_COLORS: Record<string, string> = {
 
 export default function RegimeQuadrant({ current, history = [] }: RegimeQuadrantProps) {
   // Trail: last 30 data points + current
-  const trail = history.slice(-30).map((r) => ({
+  const trailRaw = history.slice(-30);
+  const trail = trailRaw.map((r, i) => ({
     x: r.growth_score,
     y: r.inflation_score,
     regime: r.regime,
     date: r.date,
+    opacity: 0.15 + (0.7 * (i / Math.max(trailRaw.length - 1, 1))),
+    size: 2 + (2 * (i / Math.max(trailRaw.length - 1, 1))),
   }));
 
   const currentPoint = current
@@ -81,10 +84,19 @@ export default function RegimeQuadrant({ current, history = [] }: RegimeQuadrant
           {/* Historical trail */}
           <Scatter
             data={trail}
-            fill="#585b70"
-            fillOpacity={0.4}
-            r={2}
             isAnimationActive={false}
+            shape={(props: any) => {
+              const { cx, cy, payload } = props;
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={payload.size}
+                  fill="#585b70"
+                  fillOpacity={payload.opacity}
+                />
+              );
+            }}
           />
 
           {/* Current position */}
@@ -98,11 +110,11 @@ export default function RegimeQuadrant({ current, history = [] }: RegimeQuadrant
         </ScatterChart>
       </ResponsiveContainer>
       {/* Quadrant labels */}
-      <div className="relative -mt-[15.5rem] pointer-events-none text-[0.6rem] font-medium">
-        <span className="absolute left-[60%] top-2 regime-goldilocks opacity-50">GOLDILOCKS</span>
-        <span className="absolute right-[5%] top-2 regime-reflation opacity-50">REFLATION</span>
-        <span className="absolute left-[5%] bottom-8 regime-deflation opacity-50">DEFLATION</span>
-        <span className="absolute left-[5%] top-2 regime-stagflation opacity-50">STAGFLATION</span>
+      <div className="relative -mt-[15.5rem] h-[15.5rem] pointer-events-none text-[0.6rem] font-medium">
+        <span className="absolute left-[18%] top-[2rem] regime-stagflation opacity-40">STAGFLATION</span>
+        <span className="absolute right-[5%] top-[2rem] regime-reflation opacity-40">REFLATION</span>
+        <span className="absolute left-[18%] bottom-[5rem] regime-deflation opacity-40">DEFLATION</span>
+        <span className="absolute right-[5%] bottom-[5rem] regime-goldilocks opacity-40">GOLDILOCKS</span>
       </div>
     </div>
   );

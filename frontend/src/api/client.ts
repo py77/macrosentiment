@@ -1,10 +1,20 @@
 import axios from 'axios';
 
 const STORAGE_KEY = 'macrosentiment_api_url';
+const BUILD_URL = import.meta.env.VITE_API_URL || '';
+
+// If the build shipped a new API URL, clear any stale localStorage override
+// so the fresh tunnel URL takes effect automatically on deploy.
+if (BUILD_URL) {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored && stored !== BUILD_URL) {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
 
 export function getApiUrl(): string {
   return localStorage.getItem(STORAGE_KEY)
-    || import.meta.env.VITE_API_URL
+    || BUILD_URL
     || 'http://localhost:8002';
 }
 
@@ -15,7 +25,6 @@ export function setApiUrl(url: string) {
   } else {
     localStorage.removeItem(STORAGE_KEY);
   }
-  // Update the axios instance
   api.defaults.baseURL = `${getApiUrl()}/api`;
 }
 

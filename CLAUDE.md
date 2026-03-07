@@ -26,6 +26,7 @@ IBKR_HOST=host.docker.internal    # Docker->host for IBKR Gateway
 IBKR_PORT=4001
 IBKR_CLIENT_ID=78
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/macrosentiment  # set by docker-compose
+CORS_ORIGINS=https://frontend-tau-peach-83.vercel.app,https://frontend-py77s-projects.vercel.app  # Vercel frontend domains only
 ```
 
 ## Data Sources
@@ -57,7 +58,34 @@ docker compose exec db psql -U postgres macrosentiment
 
 # Health check
 curl http://localhost:8002/health
+
+# Start Cloudflare tunnel + auto-deploy to Vercel (one command)
+bash start-tunnel.sh
 ```
+
+## Vercel Deployment
+
+- **Frontend URL:** https://frontend-tau-peach-83.vercel.app
+- **Vercel project:** py77s-projects/frontend (rootDirectory="frontend")
+- **Deploy from repo root**, not `frontend/` — Vercel's rootDirectory setting handles it
+- `.vercel/project.json` must exist at both repo root and `frontend/.vercel/`
+
+### Cloudflare Tunnel (quick tunnel)
+
+The backend runs locally (needs IBKR Gateway on localhost:4001). A Cloudflare quick tunnel exposes it to the internet so the Vercel-hosted frontend can reach it.
+
+**`bash start-tunnel.sh`** handles everything automatically:
+1. Starts cloudflared and captures the new tunnel URL
+2. Updates Vercel's `VITE_API_URL` env var
+3. Triggers a fresh `vercel --prod` deploy
+4. Tails cloudflared logs (Ctrl+C to stop)
+
+**Important notes:**
+- Quick tunnel URL changes every restart — the script handles this
+- `VITE_API_URL` is a build-time variable — `vercel redeploy` won't pick up changes, need `vercel --prod`
+- `CORS_ORIGINS` should only contain Vercel frontend domains, not tunnel URLs (the browser Origin header is the frontend domain, not the tunnel)
+- `client.ts` auto-clears stale localStorage when `VITE_API_URL` changes between builds
+- Future: a named Cloudflare tunnel with a permanent URL eliminates redeployment (see comments in `start-tunnel.sh`)
 
 ## Project Structure
 
@@ -116,3 +144,5 @@ Growth/inflation momentum scores (-1 to +1) → 4 quadrants:
 - **SPX snapshot 0.0:** Index snapshots return 0.0 when market is closed. The client filters price != 0.
 - **Docker->IBKR:** Backend connects to IBKR Gateway via host.docker.internal (set in .env as IBKR_HOST).
 - **Computed indicators:** 2S10S (DGS10-DGS2 in bps) and SPX_VS_200D (% from 200d MA) are derived in data_fetcher.py:_compute_derived().
+- **CORS vs tunnel URLs:** Do not add tunnel URLs to CORS_ORIGINS. The Origin header comes from the Vercel frontend domain, not the tunnel. Only Vercel domains belong in CORS.
+- **docker compose restart vs up:** `restart` does NOT re-read `.env`. Always use `docker compose up -d` after `.env` changes.
