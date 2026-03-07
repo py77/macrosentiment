@@ -49,11 +49,15 @@ export default function RegimeQuadrant({ current, history = [] }: RegimeQuadrant
     <div className="w-full h-64">
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
-          {/* Quadrant backgrounds */}
-          <ReferenceArea x1={0} x2={1} y1={-1} y2={0} fill={REGIME_COLORS.goldilocks} />
-          <ReferenceArea x1={0} x2={1} y1={0} y2={1} fill={REGIME_COLORS.reflation} />
-          <ReferenceArea x1={-1} x2={0} y1={-1} y2={0} fill={REGIME_COLORS.deflation} />
-          <ReferenceArea x1={-1} x2={0} y1={0} y2={1} fill={REGIME_COLORS.stagflation} />
+          {/* Quadrant backgrounds with corner labels */}
+          <ReferenceArea x1={0} x2={1} y1={-1} y2={0} fill={REGIME_COLORS.goldilocks}
+            label={{ value: 'GOLDILOCKS', position: 'insideBottomRight', fill: '#a6e3a1', fontSize: 9, fontWeight: 500, opacity: 0.4 }} />
+          <ReferenceArea x1={0} x2={1} y1={0} y2={1} fill={REGIME_COLORS.reflation}
+            label={{ value: 'REFLATION', position: 'insideTopRight', fill: '#f9e2af', fontSize: 9, fontWeight: 500, opacity: 0.4 }} />
+          <ReferenceArea x1={-1} x2={0} y1={-1} y2={0} fill={REGIME_COLORS.deflation}
+            label={{ value: 'DEFLATION', position: 'insideBottomLeft', fill: '#89b4fa', fontSize: 9, fontWeight: 500, opacity: 0.4 }} />
+          <ReferenceArea x1={-1} x2={0} y1={0} y2={1} fill={REGIME_COLORS.stagflation}
+            label={{ value: 'STAGFLATION', position: 'insideTopLeft', fill: '#f38ba8', fontSize: 9, fontWeight: 500, opacity: 0.4 }} />
 
           <XAxis
             type="number"
@@ -76,9 +80,25 @@ export default function RegimeQuadrant({ current, history = [] }: RegimeQuadrant
           <ReferenceLine y={0} stroke="#313244" strokeDasharray="3 3" />
 
           <Tooltip
-            contentStyle={{ background: '#181825', border: '1px solid #313244', fontSize: '0.7rem' }}
-            labelStyle={{ color: '#cdd6f4' }}
-            formatter={(value: number | undefined) => (value ?? 0).toFixed(3)}
+            content={({ payload }) => {
+              if (!payload?.[0]) return null;
+              const d = payload[0].payload;
+              return (
+                <div style={{
+                  background: '#313244',
+                  border: '1px solid #45475a',
+                  borderRadius: 4,
+                  padding: '6px 10px',
+                  fontSize: '0.7rem',
+                  color: '#cdd6f4',
+                }}>
+                  {d.date && <div style={{ marginBottom: 2 }}>{d.date}</div>}
+                  <div>Growth: {d.x?.toFixed(3)}</div>
+                  <div>Inflation: {d.y?.toFixed(3)}</div>
+                  {d.regime && <div style={{ color: DOT_COLORS[d.regime] }}>{d.regime.toUpperCase()}</div>}
+                </div>
+              );
+            }}
           />
 
           {/* Historical trail */}
@@ -109,13 +129,6 @@ export default function RegimeQuadrant({ current, history = [] }: RegimeQuadrant
           />
         </ScatterChart>
       </ResponsiveContainer>
-      {/* Quadrant labels */}
-      <div className="relative -mt-[15.5rem] h-[15.5rem] pointer-events-none text-[0.6rem] font-medium">
-        <span className="absolute left-[18%] top-[2rem] regime-stagflation opacity-40">STAGFLATION</span>
-        <span className="absolute right-[5%] top-[2rem] regime-reflation opacity-40">REFLATION</span>
-        <span className="absolute left-[18%] bottom-[5rem] regime-deflation opacity-40">DEFLATION</span>
-        <span className="absolute right-[5%] bottom-[5rem] regime-goldilocks opacity-40">GOLDILOCKS</span>
-      </div>
     </div>
   );
 }

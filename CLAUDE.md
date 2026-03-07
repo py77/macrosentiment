@@ -136,6 +136,8 @@ Growth/inflation momentum scores (-1 to +1) → 4 quadrants:
 - IBKR client_id: 78 (avoids conflict with equityreport's 77)
 - Z-scores computed over 3-year lookback window
 - Composite score scaled -100 to +100 via category-weighted z-scores
+- Regime quadrant labels use Recharts `ReferenceArea` `label` prop (SVG-native) — never use HTML overlay divs on charts (blocks tooltips)
+- Frontend-only changes deploy with `npx vercel --prod` from repo root — no tunnel restart needed
 
 ## Gotchas
 
