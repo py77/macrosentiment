@@ -37,13 +37,15 @@ async def morning_fetch_job():
 
 def start_scheduler():
     # Evening fetch: daily at 23:00 UTC
+    # misfire_grace_time=None → run no matter how late (host sleep/hibernate tolerant)
     scheduler.add_job(
         evening_fetch_job,
         "cron",
         hour=23,
         minute=0,
         id="evening_fetch",
-        misfire_grace_time=300,
+        misfire_grace_time=None,
+        coalesce=True,
     )
     # Morning fetch: weekdays at 13:30 UTC (after US data releases)
     scheduler.add_job(
@@ -52,7 +54,8 @@ def start_scheduler():
         hour=13,
         minute=30,
         id="morning_fetch",
-        misfire_grace_time=300,
+        misfire_grace_time=None,
+        coalesce=True,
     )
     scheduler.start()
     logger.info("Scheduler started with evening (23:00 UTC) and morning (13:30 UTC) jobs")
